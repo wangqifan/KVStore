@@ -33,13 +33,56 @@ func main()  {
  
     // 客户端向grpc服务端发起请求
     // 获取服务端返回的结果
-    c.Put(context.Background(), &pb.PutRequest{Key:"key",Value:"val"})
 
-    result, err := c.Get(context.Background(), &pb.GetRequest{Key:"key"})
-    fmt.Println(result)
+
+
+    _, err = c.Put(context.Background(), &pb.PutRequest{Key:"1",Value:"1+1"})
+    _, err =c.Put(context.Background(), &pb.PutRequest{Key:"2",Value:"2+1"})
+    _, err =c.Put(context.Background(), &pb.PutRequest{Key:"3",Value:"3+1"})
+    _, err =c.Put(context.Background(), &pb.PutRequest{Key:"4",Value:"4+1"})
+    _, err =c.Put(context.Background(), &pb.PutRequest{Key:"5",Value:"5+1"})
+    _, err = c.Put(context.Background(), &pb.PutRequest{Key:"6",Value:"6+1"})
+    _, err = c.Put(context.Background(), &pb.PutRequest{Key:"7",Value:"7+1"})
+    _, err =c.Put(context.Background(), &pb.PutRequest{Key:"8",Value:"8+1"})
+    _, err =c.Put(context.Background(), &pb.PutRequest{Key:"9",Value:"9+1"})
+    _, err = c.Put(context.Background(), &pb.PutRequest{Key:"10",Value:"10+1"})
+  /*  fmt.Println("put " + "name" +"  wangqifan" )
+    c.Put(context.Background(), &pb.PutRequest{Key:"name",Value:"wangqifan"})
+
+    fmt.Println("put " + "age" +"  23" )
+    c.Put(context.Background(), &pb.PutRequest{Key:"age",Value:"23"})
+    fmt.Println("Get" + "name")
+    result, err := c.Get(context.Background(), &pb.GetRequest{Key:"name"})
+   // fmt.Println(result)
     if err != nil{
         fmt.Println("请求失败!!!")
         return
     }
     fmt.Println(result.Value)
+
+    fmt.Println("get" + " age")
+    resultage, err := c.Get(context.Background(), &pb.GetRequest{Key:"age"})
+   // fmt.Println(result)
+    if err != nil{
+        fmt.Println("请求失败!!!")
+        return
+    }
+    fmt.Println(resultage.Value)
+
+    _,err = c.Delete(context.Background(), &pb.DeleteRequest{Key:"name"})
+    fmt.Println("Get" + "name")
+    resultd, err := c.Get(context.Background(), &pb.GetRequest{Key:"name"})
+   // fmt.Println(result)
+    if err != nil{
+        fmt.Println("请求失败!!!")
+        return
+    }
+    fmt.Println(resultd)
+    */
+    scanResult, err :=c.Scan(context.Background(),&pb.ScanRequest{Start:0,Limit:10})
+    for _,str := range scanResult.Result {
+        fmt.Println(str)
+        fmt.Println("-------------")
+    }
+   
 }

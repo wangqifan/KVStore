@@ -22,9 +22,10 @@ type server struct {
   
 func (s *server) Get(ctx context.Context, in *pb.GetRequest) (*pb.GetReply, error) {
     var  num uint64 = 0
-    for val := range in.Key {
+    chars := []byte(in.Key)  
+    for _,val := range chars {
         num = num*128 + uint64(val)
-    } 
+    }
     node, result := s.skiplist.Search(num)
     if !result {
       return   &pb.GetReply{Value:""}, nil
@@ -34,9 +35,10 @@ func (s *server) Get(ctx context.Context, in *pb.GetRequest) (*pb.GetReply, erro
 
 func (s *server) Put(ctx context.Context, in *pb.PutRequest) (*pb.PutReply, error) {
     var num uint64 = 0 
-    for val := range in.Key {
+    chars := []byte(in.Key)  
+    for _,val := range chars {
         num = num*128 + uint64(val)
-    } 
+    }
     var value []byte = []byte(in.Value)
     if len(value) > 256 {
         return &pb.PutReply{IsSuccess:false}, nil
@@ -51,7 +53,8 @@ func (s *server) Put(ctx context.Context, in *pb.PutRequest) (*pb.PutReply, erro
 
 func (s *server) Delete(ctx context.Context, in *pb.DeleteRequest) (*pb.DeleteReply, error) {
     var num uint64 = 0 
-    for val := range in.Key {
+    chars := []byte(in.Key)  
+    for val := range chars {
         num = num*128 + uint64(val)
     } 
     s.skiplist.Delete(num)
@@ -59,7 +62,12 @@ func (s *server) Delete(ctx context.Context, in *pb.DeleteRequest) (*pb.DeleteRe
 }
 
 func (s *server) Scan(ctx context.Context, in *pb.ScanRequest) (*pb.ScanReply, error) {
-    return &pb.ScanReply{Result:nil}, nil
+    nodes := s.skiplist.Sub(in.Start, in.Limit)
+    var strs  []string
+    for _,node :=range nodes {
+        strs = append(strs, node.Value())
+    }
+    return &pb.ScanReply{Result:strs}, nil
 }
 
 func main() {

@@ -69,8 +69,8 @@ func (s *ConcurrentSkipList) Level() int {
 }
 
 // Length will return the length of skip list.
-func (s *ConcurrentSkipList) Length() int32 {
-	var length int32
+func (s *ConcurrentSkipList) Length() int64 {
+	var length int64
 	for _, sl := range s.skipLists {
 		length += sl.getLength()
 	}
@@ -82,7 +82,7 @@ func (s *ConcurrentSkipList) Length() int32 {
 // If the index exists, return the value and true, otherwise return nil and false.
 func (s *ConcurrentSkipList) Search(index uint64) (*Node, bool) {
 	sl := s.skipLists[getShardIndex(index)]
-	if atomic.LoadInt32(&sl.length) == 0 {
+	if atomic.LoadInt64(&sl.length) == 0 {
 		return nil, false
 	}
 
@@ -104,7 +104,7 @@ func (s *ConcurrentSkipList) Insert(index uint64, value [256]byte) {
 // Delete the node with the given index.
 func (s *ConcurrentSkipList) Delete(index uint64) {
 	sl := s.skipLists[getShardIndex(index)]
-	if atomic.LoadInt32(&sl.length) == 0 {
+	if atomic.LoadInt64(&sl.length) == 0 {
 		return
 	}
 
@@ -138,14 +138,14 @@ func (s *ConcurrentSkipList) ForEach(f func(node *Node) bool) {
 
 // Sub will return a slice the skip list who starts with startNumber.
 // The startNumber start with 0 as same as slice and maximum length is skip list's length.
-func (s *ConcurrentSkipList) Sub(startNumber int32, length int32) []*Node {
+func (s *ConcurrentSkipList) Sub(startNumber int64, length int64) []*Node {
 	// Ignore invalid parameter.
 	if startNumber > s.Length() || startNumber < 0 || length <= 0 {
 		return nil
 	}
 
 	var result []*Node
-	var position, count int32 = 0, 0
+	var position, count int64 = 0, 0
 	for _, sl := range s.skipLists {
 		if l := sl.getLength(); l == 0 || position+l <= startNumber {
 			position += l

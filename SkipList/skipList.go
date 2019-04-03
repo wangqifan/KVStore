@@ -8,7 +8,7 @@ import (
 
 type skipList struct {
 	level  int
-	length int32
+	length int64
 	head   *Node
 	tail   *Node
 	mutex  sync.RWMutex
@@ -129,7 +129,7 @@ func (s *skipList) insert(index uint64, value [256]byte) {
 		previousNodes[i] = nil
 	}
 
-	atomic.AddInt32(&s.length, 1)
+	atomic.AddInt64(&s.length, 1)
 
 	for i := len(newNode.nextNodes); i < len(previousNodes); i++ {
 		previousNodes[i] = nil
@@ -154,7 +154,7 @@ func (s *skipList) delete(index uint64) {
 			previousNodes[i] = nil
 		}
 
-		atomic.AddInt32(&s.length, -1)
+		atomic.AddInt64(&s.length, -1)
 	}
 
 	for i := len(currentNode.nextNodes); i < len(previousNodes); i++ {
@@ -187,8 +187,8 @@ func (s *skipList) snapshot() []*Node {
 }
 
 // getLength will return the length of skip list.
-func (s *skipList) getLength() int32 {
-	return atomic.LoadInt32(&s.length)
+func (s *skipList) getLength() int64 {
+	return atomic.LoadInt64(&s.length)
 }
 
 // randomLevel will generate and random level that level > 0 and level < skip list's level
