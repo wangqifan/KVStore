@@ -34,7 +34,10 @@ func main()  {
     // 客户端向grpc服务端发起请求
     // 获取服务端返回的结果
 
-
+    _, err = c.Get(context.Background(), &pb.GetRequest{Key:"dsf"})
+    if err != nil {
+        fmt.Println(err)
+    }
 
     _, err = c.Put(context.Background(), &pb.PutRequest{Key:"1",Value:"1+1"})
     _, err =c.Put(context.Background(), &pb.PutRequest{Key:"2",Value:"2+1"})
