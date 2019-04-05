@@ -1,5 +1,7 @@
 package SkipList
 
+import "strings"
+
 type Node struct {
 	index     uint64
 	value     [256]byte
@@ -22,5 +24,5 @@ func (n *Node) Index() uint64 {
 
 // Value will return the node's value.
 func (n *Node) Value() string {
-	return string(n.value[:])
+	return  strings.TrimSpace(string(n.value[:]))
 }
