@@ -9,6 +9,9 @@ import (
      "KVStore/SkipList"
      "fmt"
      "KVStore/errors"
+     RecordPb  "KVStore/WAL/pb"
+     "KVStore/WAL"
+     "KVStore/Util"
 )
   
 const (
@@ -16,20 +19,18 @@ const (
 )
   
 type server struct {
-    skiplist *SkipList.ConcurrentSkipList 
+    skiplist *SkipList.ConcurrentSkipList
+        log     *wal.Log
 }
   
 func (s *server) Get(ctx context.Context, in *pb.GetRequest) (*pb.GetReply, error) {
   
-    chars := []byte(in.Key)
-    if len(chars) ==0 || len(chars) >8 {
-        return nil, errors.NewKeyInvaildError()
-    } 
-    var  num uint64 = 0
-    for _,val := range chars {
-        num = num*128 + uint64(val)
+    key, err := util.StingTounin64(in.Key)
+    if err != nil {
+        return nil, err
     }
-    node, result := s.skiplist.Search(num)
+
+    node, result := s.skiplist.Search(key)
     if !result {
       return   nil,errors.NewKeyNotFoundError()
     }
@@ -38,39 +39,43 @@ func (s *server) Get(ctx context.Context, in *pb.GetRequest) (*pb.GetReply, erro
 
 func (s *server) Put(ctx context.Context, in *pb.PutRequest) (*pb.PutReply, error) {
 
-    chars := []byte(in.Key)
-    if len(chars) ==0 || len(chars) >8 {
-        return nil, errors.NewKeyInvaildError()
-    } 
-
-    var num uint64 = 0 
-    for _,val := range chars {
-        num = num*128 + uint64(val)
+    key, err := util.StingTounin64(in.Key)
+    if err != nil {
+        return nil, err
+    }
+    
+    value, err := util.StringToArray(in.Value)
+    if err != nil {
+        return nil, err
     }
 
-    var value []byte = []byte(in.Value)
-    if len(value) > 256 || len(value) ==0 {
-        return &pb.PutReply{IsSuccess : false}, errors.NewValueInvaildError()
+    s.skiplist.Insert(key, value)
+
+    record := &RecordPb.Record{
+               Type : 1,
+               Key : in.Key,
+               Value : in.Value,
     }
-    var temp [256]byte
-    for i, item := range value {
-        temp[i] = item
-    }
-    s.skiplist.Insert(num, temp)
+    s.log.AppendLog(record)
+
     return &pb.PutReply{IsSuccess:true}, nil
 }
 
 func (s *server) Delete(ctx context.Context, in *pb.DeleteRequest) (*pb.DeleteReply, error) {
 
-    chars := []byte(in.Key)  
-    if len(chars) ==0 || len(chars) >8 {
-        return nil, errors.NewKeyInvaildError()
-    } 
-    var num uint64 = 0 
-    for val := range chars {
-        num = num*128 + uint64(val)
-    } 
-    s.skiplist.Delete(num)
+    key, err := util.StingTounin64(in.Key)
+    if err != nil {
+        return nil, err
+    }
+
+    s.skiplist.Delete(key)
+    
+    record := &RecordPb.Record{
+        Type : 2,
+        Key : in.Key,
+    }
+    s.log.AppendLog(record)
+
     return &pb.DeleteReply{IsSuccess:true}, nil
 }
 
@@ -97,8 +102,16 @@ func main() {
     if err != nil {
          fmt.Println(err)
     }
+
     server := &server{}
     server.skiplist = skipList
+    server.log = wal.NewLog("data.dat")
+
+    play := wal.NewWalReplay("data.dat")
+    if play != nil {
+        play.ReadAll(server.skiplist)
+    }
+   
     pb.RegisterStoreServiceServer(s, server)
     s.Serve(lis)
 }
