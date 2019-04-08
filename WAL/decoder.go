@@ -1,12 +1,12 @@
 package wal
 
 import (
+	"KVStore/WAL/pb"
 	"bufio"
 	"encoding/binary"
+	"github.com/golang/protobuf/proto"
 	"io"
 	"sync"
-	"KVStore/WAL/pb"
-	"github.com/golang/protobuf/proto"
 )
 
 const minSectorSize = 512
@@ -15,7 +15,7 @@ const minSectorSize = 512
 const frameSizeBytes = 8
 
 type decoder struct {
-	mu  sync.Mutex
+	mu sync.Mutex
 	br *bufio.Reader
 }
 
@@ -37,7 +37,7 @@ func (d *decoder) decodeRecord(rec *pb.Record) error {
 
 	l, err := readInt64(d.br)
 	if err == io.EOF || (err == nil && l == 0) {
-	    return io.EOF
+		return io.EOF
 	}
 	if err != nil {
 		return err

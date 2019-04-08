@@ -1,62 +1,61 @@
 package wal
 
-
 import (
-	"os"
-	"sync"
-	"fmt"
-	"bufio"
-	"KVStore/WAL/pb"
 	"KVStore/SkipList"
 	"KVStore/Util"
+	"KVStore/WAL/pb"
+	"bufio"
+	"fmt"
+	"os"
+	"sync"
 )
 
 type WalReplay struct {
-	mu sync.Mutex
-	decoder   *decoder
-	f         *os.File
+	mu      sync.Mutex
+	decoder *decoder
+	f       *os.File
 }
 
 func NewWalReplay(path string) *WalReplay {
-    f, err := os.Open(path)
-    if err != nil {
-      	 fmt.Println("open file err = ", err)
-	     return nil
-    }
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Println("open file err = ", err)
+		return nil
+	}
 
 	r := bufio.NewReader(f)
-	return & WalReplay{
+	return &WalReplay{
 		decoder: newDecoder(r),
-		f: f,
+		f:       f,
 	}
 }
 
-func (play *WalReplay)ReadAll(skiplist *SkipList.ConcurrentSkipList ) {
+func (play *WalReplay) ReadAll(skiplist *SkipList.ConcurrentSkipList) {
 	play.mu.Lock()
 	defer play.mu.Unlock()
-  
+
 	fmt.Println("开始日志回放")
 	record := &pb.Record{}
-    count := 0
+	count := 0
 	for err := play.decoder.decode(record); err == nil; err = play.decoder.decode(record) {
 		if record.Type == 1 {
-			index, err:= util.StingTounin64(record.Key)
+			index, err := util.StingTounin64(record.Key)
 			if err != nil {
-				continue;
+				continue
 			}
-			value, err:= util.StringToArray(record.Value)
+			value, err := util.StringToArray(record.Value)
 			if err != nil {
-				continue;
+				continue
 			}
 			skiplist.Insert(index, value)
 		} else {
-			index, err:= util.StingTounin64(record.Key)
+			index, err := util.StingTounin64(record.Key)
 			if err != nil {
-				continue;
+				continue
 			}
 			skiplist.Delete(index)
 		}
-		fmt.Println(record.Key + "  "+ record.Value)
+		fmt.Println(record.Key + "  " + record.Value)
 		count++
 	}
 	fmt.Println("记录数")

@@ -95,7 +95,7 @@ func (s *ConcurrentSkipList) Insert(index uint64, value [256]byte) {
 	// Ignore nil value.
 	//if value == nil {
 	//	return
-//	}
+	//	}
 
 	sl := s.skipLists[getShardIndex(index)]
 	sl.insert(index, value)

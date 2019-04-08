@@ -24,5 +24,5 @@ func (n *Node) Index() uint64 {
 
 // Value will return the node's value.
 func (n *Node) Value() string {
-	return  strings.TrimSpace(string(n.value[:]))
+	return strings.TrimSpace(string(n.value[:]))
 }

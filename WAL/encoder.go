@@ -1,27 +1,25 @@
 package wal
 
 import (
+	"KVStore/WAL/pb"
 	"encoding/binary"
+	"github.com/golang/protobuf/proto"
 	"io"
 	"sync"
-	"KVStore/WAL/pb"
-	"github.com/golang/protobuf/proto"
 )
 
-
 type encoder struct {
-	mu sync.Mutex
-	w io.Writer
+	mu        sync.Mutex
+	w         io.Writer
 	uint64buf []byte
 }
 
 func newEncoder(w io.Writer) *encoder {
 	return &encoder{
-		w:  w,
+		w:         w,
 		uint64buf: make([]byte, 8),
 	}
 }
-
 
 func (e *encoder) encode(rec *pb.Record) error {
 	e.mu.Lock()
@@ -29,11 +27,11 @@ func (e *encoder) encode(rec *pb.Record) error {
 
 	data, err := proto.Marshal(rec)
 	lenField, padBytes := encodeFrameSize(len(data))
-	
+
 	if err = writeUint64(e.w, lenField, e.uint64buf); err != nil {
 		return err
 	}
-	
+
 	if padBytes != 0 {
 		data = append(data, make([]byte, padBytes)...)
 	}
