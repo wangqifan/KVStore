@@ -20,13 +20,13 @@ go run server.go
 ~~~
 测试
 ~~~
-go run client.go
+go test -v server_test.go
 ~~~
 
 ## 关于WAL
 Write-Ahead Logging 来保证数据持久化
 * 写log---使用protoc buff 将record序列化，不满8比特打padding,使用uint64类型表示数据长度和padding长度，写入文件先写入uint64的长度数据，然后再写入对象序列化数据
-* log 重放，先读出uint64 数据吗，然后再取出数据长度和padding长度，最后反序列号。
+* log 重放，先读出uint64 数据吗，然后再取出数据长度和padding长度，读取对应长度的数据，最后反序列化。
 
 ## 文件描述
 
